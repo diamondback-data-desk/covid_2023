@@ -61,4 +61,5 @@ data <- data %>%
 correct_data <- data %>% 
   select("DATE", "difference_Allegany", "difference_Anne_Arundel", "difference_Baltimore", "difference_Baltimore_City", "difference_Calvert", "difference_Caroline", "difference_Carroll", "difference_Cecil", "difference_Charles", "difference_Dorchester", "difference_Frederick", "difference_Garrett", "difference_Harford", "difference_Howard", "difference_Kent", "difference_Montgomery", "difference_Prince_Georges", "difference_Queen_Annes", "difference_Somerset", "difference_St_Marys", "difference_Talbot", "difference_Washington", "difference_Wicomico", "difference_Worcester")
 
+print(correct_data)
 ```
