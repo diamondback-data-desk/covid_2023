@@ -27,9 +27,38 @@ library(readxl)
 
 ```{r}
 data <- read_csv('cases_by_county.csv')
-data <-
-  data%>%
-drop_na(drop)o
+
+data <- data %>% 
+   mutate(
+    difference_Allegany = Allegany - lag(Allegany),
+    difference_Anne_Arundel = Anne_Arundel - lag(Anne_Arundel),
+    difference_Baltimore = Baltimore - lag(Baltimore),
+    difference_Baltimore_City = Baltimore_City - lag(Baltimore_City),
+    difference_Calvert = Calvert - lag(Calvert),
+    difference_Caroline = Caroline - lag(Caroline),
+    difference_Carroll = Carroll - lag(Carroll),
+    difference_Cecil = Cecil - lag(Cecil),
+    difference_Charles = Charles - lag(Charles),
+    difference_Dorchester = Dorchester - lag(Dorchester),
+    difference_Frederick = Frederick - lag(Frederick),
+    difference_Garrett = Garrett - lag(Garrett),
+    difference_Harford = Harford - lag(Harford),
+    difference_Howard = Howard - lag(Howard),
+    difference_Kent = Kent - lag(Kent),
+    difference_Montgomery = Montgomery - lag(Montgomery),
+    difference_Prince_Georges = Prince_Georges - lag(Prince_Georges),
+    difference_Queen_Annes = Queen_Annes - lag(Queen_Annes),
+    difference_Somerset = Somerset - lag(Somerset),
+    difference_St_Marys = St_Marys - lag(St_Marys),
+    difference_Talbot = Talbot - lag(Talbot),
+    difference_Washington = Washington - lag(Washington),
+    difference_Wicomico = Wicomico - lag(Wicomico),
+    difference_Worcester = Worcester - lag(Worcester)
+  )
 
 ```
+```{r}
+correct_data <- data %>% 
+  select("DATE", "difference_Allegany", "difference_Anne_Arundel", "difference_Baltimore", "difference_Baltimore_City", "difference_Calvert", "difference_Caroline", "difference_Carroll", "difference_Cecil", "difference_Charles", "difference_Dorchester", "difference_Frederick", "difference_Garrett", "difference_Harford", "difference_Howard", "difference_Kent", "difference_Montgomery", "difference_Prince_Georges", "difference_Queen_Annes", "difference_Somerset", "difference_St_Marys", "difference_Talbot", "difference_Washington", "difference_Wicomico", "difference_Worcester")
 
+```
