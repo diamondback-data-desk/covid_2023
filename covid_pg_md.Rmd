@@ -15,6 +15,8 @@ This is an R Markdown document. Markdown is a simple formatting syntax for autho
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
 ```{r}
+install.packages(("writexl"))
+library(writexl)
 library(tidyverse)
 library(lubridate)
 library(dplyr)
@@ -62,4 +64,7 @@ correct_data <- data %>%
   select("DATE", "difference_Allegany", "difference_Anne_Arundel", "difference_Baltimore", "difference_Baltimore_City", "difference_Calvert", "difference_Caroline", "difference_Carroll", "difference_Cecil", "difference_Charles", "difference_Dorchester", "difference_Frederick", "difference_Garrett", "difference_Harford", "difference_Howard", "difference_Kent", "difference_Montgomery", "difference_Prince_Georges", "difference_Queen_Annes", "difference_Somerset", "difference_St_Marys", "difference_Talbot", "difference_Washington", "difference_Wicomico", "difference_Worcester")
 
 print(correct_data)
+```
+```{r}
+write_xlsx(correct_data, "final_pg_md_data.xlsx")
 ```
