@@ -58,10 +58,17 @@ data <- data %>%
     difference_Worcester = Worcester - lag(Worcester)
   )
 
+# victoria - we only used PG so just doing this for ease
+correct_data <- data %>%
+  select(DATE, difference_Prince_Georges, Prince_Georges)
+
+# victoria - the first row in this is incorrect, but we can just put 9 in on the graphic it's fine.
+
 ```
 ```{r}
-correct_data <- data %>% 
-  select("DATE", "difference_Allegany", "difference_Anne_Arundel", "difference_Baltimore", "difference_Baltimore_City", "difference_Calvert", "difference_Caroline", "difference_Carroll", "difference_Cecil", "difference_Charles", "difference_Dorchester", "difference_Frederick", "difference_Garrett", "difference_Harford", "difference_Howard", "difference_Kent", "difference_Montgomery", "difference_Prince_Georges", "difference_Queen_Annes", "difference_Somerset", "difference_St_Marys", "difference_Talbot", "difference_Washington", "difference_Wicomico", "difference_Worcester")
+# victoria - commenting this out cuz we only using PG
+#correct_data <- data %>% 
+  #select("DATE", "difference_Allegany", "difference_Anne_Arundel", "difference_Baltimore", "difference_Baltimore_City", "difference_Calvert", "difference_Caroline", "difference_Carroll", "difference_Cecil", "difference_Charles", "difference_Dorchester", "difference_Frederick", "difference_Garrett", "difference_Harford", "difference_Howard", "difference_Kent", "difference_Montgomery", "difference_Prince_Georges", "difference_Queen_Annes", "difference_Somerset", "difference_St_Marys", "difference_Talbot", "difference_Washington", "difference_Wicomico", "difference_Worcester")
 
 print(correct_data)
 ```
