@@ -1,7 +1,7 @@
 ---
 title: "covid_analysis"
 output: html_document
-date: "2022-09-29"
+date: "2023-09-20"
 ---
 
 ```{r setup, include=FALSE}
@@ -14,45 +14,127 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(lubridate)
 library(dplyr)
+install.packages("writexl")
 library(writexl)
 library(ggplot2)
 library(janitor)
 library(readxl)
+#install.packages("plyr")
+library(plyr)
 ```
-
+# victoria adding in and cleaning new covid historic data 9-20-2022 - 9-05-2023
+# hic checked
 ```{r}
+# read in covid positive report data 9-20-2022 - 9-05-2023
+data23 <- read_csv('newdatarightformat.csv')
+
+#get rid of totals rows for each year
+data23 <- data23[-c(1,105,293),]
+
+# clean names and create 1 column for role type instead of having 1 column for each different role
+data23 <- data23 %>%
+  clean_names() %>%
+  pivot_longer(cols = c(contains('faculty'), contains('staff'), contains('student')))
+
+# rename the columns to match what the old dataframe below has
+colnames(data23) <- c('date','drop','role','count')
+
+# make the dates consistent with the old datas format
+data23$date <- as.Date(parse_date_time(data23$date, "mdy"))
+
+# select only the columns I need, we don't need the column that has the totals for each day
+data23 <- data23 %>%
+  select(role, date, count)
+
+# make all the NAs 
+data23[is.na(data23)] <- 0
+
+```
+# this is Devon's old code, I have commented where I adjusted it
+```{r}
+# this is all devon adding in the dataframe we had last year, adjusting column names, getting rid of nas
+
 data <- read_csv('data930.csv')
 colnames(data) <- c('drop','type','role','date','count')
-data <-
-  data%>%
+data <- data%>%
 drop_na(drop)
 data <- subset(data, select = -c(drop))
 
+#victoria 9/21/2023 also dropping type column from the old data to match our current data
 
-#clean date
+data <- subset(data, select = -c(type))
+
+# this was devon, just adjustng the date
 data$date <- as.Date(parse_date_time(data$date, "dmy"))
-data$year <- as.numeric(format(data$date, "%Y"))
 
-ggplot(data=data, aes(x=date, y=count, group=1)) +
-  geom_line()+
-  geom_point()
+#victoria 9/21/2023 making all nas equal to zero in old data
+
+data[is.na(data)] <- 0
+
 ```
+
+#victoria 9/21/2023 joining the dataframe 'data' and the dataframe 'data23' to create a dataframe for total historic recorded positive covid cases
+
+```{r}
+# joining the two dataframes
+historic_data <- rbind(data, data23) %>%
+  # removing the role column because we really just want the totals 
+  select(-c(role))
+  
+# now I'm summing the case count for each date  
+historic_data <- aggregate(.~date,data=historic_data,FUN=sum)
+
+#historic_data <- historic_data %>%
+#  mutate(sum = rowSums(across(where(is.numeric)), na.rm=TRUE))
+
+# hic gut check:
+#   12 on june 1, 2021 in 'historic_data'
+#   12 on june 1, 2021 in 'data'
+#   10 on june 1, 2023 in 'historic_data'
+#   10 on june 1, 2023 in 'data'
+
+# and then I'm writing it out to this file 
+
+write_xlsx(historic_data, "newcasedata.xlsx")
+
+
+
+```
+
+# Victoria - now I'm using the new complete dataframe to see how many cases were in the same time period (first 9 days of the semester) this year compared to last year
+# hic checked
+
+```{r}
+
+v_fall2022  <- historic_data[historic_data$date >= "2022-08-29" & historic_data$date <= "2022-09-06",]
+
+v_fall2023  <- historic_data[historic_data$date >= "2023-08-28" & historic_data$date <= "2023-09-05",]
+
+
+sum(v_fall2022$count)
+sum(v_fall2023$count)
+
+# This is the end of victoria stuff
+
+```
+
+
 
 ```{r}
 #create dfs by semester
-fall2020 <- data[data$date >= "2020-08-30" & data$date <= "2020-12-22", ]
-spring2021 <- data[data$date >= "2021-01-25" & data$date <= "2021-05-19", ]
-fall2021 <- data[data$date >= "2021-08-30" & data$date <= "2021-12-22", ]
-spring2022  <- data[data$date >= "2022-01-24" & data$date <= "2022-05-18", ]
-fall2022  <- data[data$date >= "2022-08-29",]
+fall2020 <- historic_data[historic_data$date >= "2020-08-30" & historic_data$date <= "2020-12-22", ]
+spring2021 <- historic_data[historic_data$date >= "2021-01-25" & historic_data$date <= "2021-05-19", ]
+fall2021 <- historic_data[historic_data$date >= "2021-08-30" & historic_data$date <= "2021-12-22", ]
+spring2022  <- historic_data[historic_data$date >= "2022-01-24" & historic_data$date <= "2022-05-18", ]
+fall2022  <- historic_data[historic_data$date >= "2022-08-29",]
 
 
 #devon semesters - adjust start date for fall 2020, end date for fall 2021 -- USE THIS FOR TOTAL SEM COUNT
-d_fall2020 <- data[data$date >= "2020-08-31" & data$date <= "2020-12-22", ]
-d_spring2021 <- data[data$date >= "2021-01-25" & data$date <= "2021-05-19", ]
-d_fall2021 <- data[data$date >= "2021-08-30" & data$date <= "2021-12-21", ]
-d_spring2022  <- data[data$date >= "2022-01-24" & data$date <= "2022-05-18", ]
-d_fall2022  <- data[data$date >= "2022-08-29",]
+d_fall2020 <- historic_data[historic_data$date >= "2020-08-31" & historic_data$date <= "2020-12-22", ]
+d_spring2021 <- historic_data[historic_data$date >= "2021-01-25" & historic_data$date <= "2021-05-19", ]
+d_fall2021 <- historic_data[historic_data$date >= "2021-08-30" & historic_data$date <= "2021-12-21", ]
+d_spring2022  <- historic_data[historic_data$date >= "2022-01-24" & historic_data$date <= "2022-05-18", ]
+d_fall2022  <- historic_data[historic_data$date >= "2022-08-29" & historic_data$date <= "",]
 
 ```
 
@@ -64,50 +146,55 @@ sum(spring2022$count)
 sum(fall2022$count)
 
 #devon sums with new adjusted semesters -- USE THIS FOR TOTAL SEM COUNT
-sum(d_fall2020$number_of_cases)
-sum(d_spring2021$number_of_cases)
-sum(d_fall2021$number_of_cases)
-sum(d_spring2022$number_of_cases)
-sum(d_fall2022$number_of_cases)
+sum(d_fall2020$count)
+sum(d_spring2021$count)
+sum(d_fall2021$count)
+sum(d_spring2022$count)
+sum(d_fall2022$count)
 
 
 
 ```
 #3 dont use this block
 ```{r}
-shortfall2020 <- data[data$date >= "2020-08-30" & data$date <= "2020-09-21", ]
-shortspring2021 <- data[data$date >= "2021-01-25" & data$date <= "2021-02-10", ] #why is this shorter? - devon
-shortfall2021 <- data[data$date >= "2021-08-30" & data$date <= "2021-09-21", ]
-shortspring2022  <- data[data$date >= "2022-01-24" & data$date <= "2022-02-11", ] #why is this shorter? - devon
-fall2022  <- data[data$date >= "2022-08-29",]
+shortfall2020 <- historic_data[historic_data$date >= "2020-08-30" & historic_data$date <= "2020-09-21", ]
+shortspring2021 <- historic_data[historic_data$date >= "2021-01-25" & historic_data$date <= "2021-02-10", ] #why is this shorter? - devon
+shortfall2021 <- historic_data[historic_data$date >= "2021-08-30" & historic_data$date <= "2021-09-21", ]
+shortspring2022  <- historic_data[historic_data$date >= "2022-01-24" & historic_data$date <= "2022-02-11", ] #why is this shorter? - devon
+fall2022  <- historic_data[historic_data$date >= "2022-08-29",]
 
 #devon short sems adjusting fall 2020 start, spring 2021 end, fall 2021 end, spring 2022 end
-d_shortfall2020 <- data[data$date >= "2020-08-31" & data$date <= "2020-09-21", ]
-d_shortspring2021 <- data[data$date >= "2021-01-25" & data$date <= "2021-02-15", ]
-d_shortfall2021 <- data[data$date >= "2021-08-30" & data$date <= "2021-09-20", ]
-d_shortspring2022  <- data[data$date >= "2022-01-24" & data$date <= "2022-02-14", ]
-d_fall2022  <- data[data$date >= "2022-08-29",]
+d_shortfall2020 <- historic_data[historic_data$date >= "2020-08-31" & historic_data$date <= "2020-09-21", ]
+d_shortspring2021 <- historic_data[historic_data$date >= "2021-01-25" & historic_data$date <= "2021-02-15", ]
+d_shortfall2021 <- historic_data[historic_data$date >= "2021-08-30" & historic_data$date <= "2021-09-20", ]
+d_shortspring2022  <- historic_data[historic_data$date >= "2022-01-24" & historic_data$date <= "2022-02-14", ]
+d_fall2022  <- historic_data[historic_data$date >= "2022-08-29",]
 ```
 
 ## good block
 ```{r}
 
-#again, again with new data --> 32 day periods -- USE THIS FOR 32-DAY PERIODS
+#again, again with new historic_data --> 32 day periods -- USE THIS FOR 32-DAY PERIODS
 
-newshortfall2020 <- data[data$date >= "2020-08-31" & data$date <= "2020-10-02", ]
-newshortspring2021 <- data[data$date >= "2021-01-25" & data$date <= "2021-02-26", ]
-newshortfall2021 <- data[data$date >= "2021-08-30" & data$date <= "2021-10-01", ]
-newshortspring2022  <- data[data$date >= "2022-01-24" & data$date <= "2022-02-25", ]
-newfall2022  <- data[data$date >= "2022-08-29",]
+newshortfall2020 <- historic_data[historic_data$date >= "2020-08-31" & historic_data$date <= "2020-10-02", ]
+newshortspring2021 <- historic_data[historic_data$date >= "2021-01-25" & historic_data$date <= "2021-02-26", ]
+newshortfall2021 <- historic_data[historic_data$date >= "2021-08-30" & historic_data$date <= "2021-10-01", ]
+newshortspring2022  <- historic_data[historic_data$date >= "2022-01-24" & historic_data$date <= "2022-02-25", ]
+newfall2022  <- historic_data[historic_data$date >= "2022-08-29",]
 
 #devon 30 day periods - USE THIS FOR 30-day periods
 
-d_newshortfall2020 <- data[data$date >= "2020-08-31" & data$date <= "2020-09-30", ]
-d_newshortspring2021 <- data[data$date >= "2021-01-25" & data$date <= "2021-02-24", ]
-d_newshortfall2021 <- data[data$date >= "2021-08-30" & data$date <= "2021-09-29", ]
-d_newshortspring2022  <- data[data$date >= "2022-01-24" & data$date <= "2022-02-23", ]
-d_newthirtyfall2022 <- data[data$date >= "2022-08-29" & data$date <= "2022-09-28",]
-d_newfall2022  <- data[data$date >= "2022-08-29",] #32 days in this one
+d_newshortfall2020 <- historic_data[historic_data$date >= "2020-08-31" & historic_data$date <= "2020-09-30", ]
+d_newshortspring2021 <- historic_data[historic_data$date >= "2021-01-25" & historic_data$date <= "2021-02-24", ]
+d_newshortfall2021 <- historic_data[historic_data$date >= "2021-08-30" & historic_data$date <= "2021-09-29", ]
+d_newshortspring2022  <- historic_data[historic_data$date >= "2022-01-24" & historic_data$date <= "2022-02-23", ]
+d_newthirtyfall2022 <- historic_data[historic_data$date >= "2022-08-29" & historic_data$date <= "2022-09-28",]
+d_newfall2022  <- historic_data[historic_data$date >= "2022-08-29",] #32 days in this one
+
+d_newfall2023 <- historic_data[historic_data$date >= "2023-8-28",]
+
+d_tryfall2022 <- historic_data[historic_data$date >= "2022-8-28" & historic_data$date <= "2022-09-05",]
+
 
 ```
 
@@ -142,13 +229,15 @@ sum(d_newshortfall2021$count)
 sum(d_newshortspring2022$count)
 sum(d_newthirtyfall2022$count)
 sum(d_newfall2022$count)
+sum(d_newfall2023$count)
+sum(d_tryfall2022$count)
 ```
 
 
 
 ```{r}
-databydate <- data %>% group_by(date)
-databydate <- subset(databydate, select = -c(role))
+historic_databydate <- historic_data %>% group_by(date)
+historic_databydate <- subset(historic_databydate, select = -c(role))
 
 
 newshortfall2020sr <-
@@ -238,11 +327,11 @@ sum(fall2022u$count)+sum(fall2022sr$count)
 
 ```
 
-Pivoting, binding, and cleaning data here -- Shreya --- old and irrelevant :wave:
+Pivoting, binding, and cleaning historic_data here -- Shreya --- old and irrelevant :wave:
 ```{r}
 
-#load in data
-data <- read_csv('data.csv') %>%
+#load in historic_data
+historic_data <- read_csv('historic_data.csv') %>%
   clean_names() %>%
   rename(
     date = positive_test_result_date
@@ -253,10 +342,10 @@ data <- read_csv('data.csv') %>%
   # )
 
 #clean date
-data$date <- as.Date(parse_date_time(data$date, "dmy"))
-data$year <- as.numeric(format(data$date, "%Y"))
+historic_data$date <- as.Date(parse_date_time(historic_data$date, "dmy"))
+historic_data$year <- as.numeric(format(historic_data$date, "%Y"))
 
-clean_historic_data <- data %>%
+clean_historic_historic_data <- historic_data %>%
   pivot_wider(names_from=primary_role, values_from=number_of_cases, values_fn = length, values_fill = 0) %>%
   clean_names() %>%
   mutate(
@@ -265,17 +354,17 @@ clean_historic_data <- data %>%
   #mutate(across(student:faculty, ~replace(., lengths(.) == 0, NA)))
 
 #export to excel because efficiency and I don't know how
-write_xlsx(clean_historic_data, "clean_historic_data.xlsx")
+write_xlsx(clean_historic_historic_data, "clean_historic_historic_data.xlsx")
 
-self_reports_clean <- clean_historic_data %>%
+self_reports_clean <- clean_historic_historic_data %>%
   filter(self_reported_or_uhc_reported == "Self Reported")
 
 # test
-fall2020 <- clean_historic_data[clean_historic_data$date >= "2020-08-30" & clean_historic_data$date <= "2020-12-22", ]
+fall2020 <- clean_historic_historic_data[clean_historic_historic_data$date >= "2020-08-30" & clean_historic_historic_data$date <= "2020-12-22", ]
 self_reports_clean[is.null(self_reports_clean)] = 0
 
 
-uhc_reports_clean <- clean_historic_data %>%
+uhc_reports_clean <- clean_historic_historic_data %>%
   filter(self_reported_or_uhc_reported == "UHC Reported")
 
 ```
@@ -284,8 +373,8 @@ uhc_reports_clean <- clean_historic_data %>%
 Joining the important policy dates to cases -- Shreya
 ```{r}
 
-#load in data
-new_data <- read_xlsx("latest_9_30_covid_data.xlsx") %>%
+#load in historic_data
+new_historic_data <- read_xlsx("latest_9_30_covid_historic_data.xlsx") %>%
   clean_names() %>%
   rename(
     date = positive_test_result_date
@@ -300,14 +389,14 @@ historic_dates <- read_csv("historical_covid_dates.csv") %>%
   )
 
 
-##pivoted data
-join_dates_and_cases <- new_data %>%
+##pivoted historic_data
+join_dates_and_cases <- new_historic_data %>%
   left_join(historic_dates, by=c("date")) %>%
   pivot_wider(names_from=primary_role, values_from=no_of_cases) %>%
   clean_names()
 
 ##wider for fun
-wide_join_dates_and_cases <- new_data %>%
+wide_join_dates_and_cases <- new_historic_data %>%
   left_join(historic_dates, by=c("date")) %>%
   select(-diamondback_request) %>%
   group_by(reporting_type) %>%
