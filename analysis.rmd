@@ -14,6 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(lubridate)
 library(dplyr)
+install.packages("writexl")
 library(writexl)
 library(ggplot2)
 library(janitor)
@@ -22,6 +23,7 @@ library(readxl)
 library(plyr)
 ```
 # victoria adding in and cleaning new covid historic data 9-20-2022 - 9-05-2023
+# hic checked
 ```{r}
 # read in covid positive report data 9-20-2022 - 9-05-2023
 data23 <- read_csv('newdatarightformat.csv')
@@ -77,21 +79,30 @@ data[is.na(data)] <- 0
 # joining the two dataframes
 historic_data <- rbind(data, data23) %>%
   # removing the role column because we really just want the totals 
-  select(-c(role)) %>%
+  select(-c(role))
   
 # now I'm summing the case count for each date  
 historic_data <- aggregate(.~date,data=historic_data,FUN=sum)
 
-historic_data <- historic_data %>%
-  mutate(sum = rowSums(across(where(is.numeric)), na.rm=TRUE))
+#historic_data <- historic_data %>%
+#  mutate(sum = rowSums(across(where(is.numeric)), na.rm=TRUE))
+
+# hic gut check:
+#   12 on june 1, 2021 in 'historic_data'
+#   12 on june 1, 2021 in 'data'
+#   10 on june 1, 2023 in 'historic_data'
+#   10 on june 1, 2023 in 'data'
 
 # and then I'm writing it out to this file 
 
 write_xlsx(historic_data, "newcasedata.xlsx")
 
+
+
 ```
 
 # Victoria - now I'm using the new complete dataframe to see how many cases were in the same time period (first 9 days of the semester) this year compared to last year
+# hic checked
 
 ```{r}
 
