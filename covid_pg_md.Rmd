@@ -63,6 +63,7 @@ correct_data <- data %>%
   select(DATE, difference_Prince_Georges, Prince_Georges)
 
 # victoria - the first row in this is incorrect, but we can just put 9 in on the graphic it's fine.
+# hic checked 
 
 ```
 ```{r}
